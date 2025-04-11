@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-// TODO: нужно будет подраправить в будущем, что бы не висело здесь
+// TODO: нужно будет подправить в будущем, чтобы не висело здесь
 var (
 	ErrInvalidCredentials  = errors.New("invalid username or password")
 	ErrAccountDeactivated  = errors.New("account is deactivated")
@@ -295,7 +295,7 @@ func (s *authService) UpdateUser(ctx context.Context, userID uint, input domain.
 		changed = true
 	}
 
-	// обновлять только если были изминения
+	// обновлять только если были изменения
 	if changed {
 		user.UpdatedAt = time.Now()
 
