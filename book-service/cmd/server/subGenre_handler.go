@@ -2,6 +2,8 @@ package main
 
 import (
 	"book-service/internal/data"
+	"book-service/internal/domain"
+	"book-service/internal/filters"
 	"book-service/internal/validator"
 	"errors"
 	"fmt"
@@ -24,7 +26,7 @@ func (app *application) createSubGenreHandler(w http.ResponseWriter, r *http.Req
 
 	v := validator.New()
 
-	sgenre := &data.SubGenre{
+	sgenre := &domain.SubGenre{
 		Title:     input.Title,
 		MainGenre: input.MainGenre,
 		BookCount: input.BookCount,
@@ -166,7 +168,7 @@ func (app *application) deleteSubGenreHandler(w http.ResponseWriter, r *http.Req
 func (app *application) listSubGenresHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Title string
-		data.Filters
+		filters.Filters
 	}
 	v := validator.New()
 
@@ -183,7 +185,7 @@ func (app *application) listSubGenresHandler(w http.ResponseWriter, r *http.Requ
 		"id", "title", "main_genre", "book_count", "-id", "-title", "-main_genre", "-book_count",
 	}
 
-	if data.ValidateFilters(v, input.Filters); !v.Valid() {
+	if filters.ValidateFilters(v, input.Filters); !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}

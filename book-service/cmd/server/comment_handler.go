@@ -2,6 +2,8 @@ package main
 
 import (
 	"book-service/internal/data"
+	"book-service/internal/domain"
+	"book-service/internal/filters"
 	"book-service/internal/validator"
 	"errors"
 	"fmt"
@@ -24,7 +26,7 @@ func (app *application) createCommentHandler(w http.ResponseWriter, r *http.Requ
 
 	v := validator.New()
 
-	comment := &data.Comment{
+	comment := &domain.Comment{
 		BookID:  input.BookID,
 		UserID:  userID,
 		Content: input.Content,
@@ -194,7 +196,7 @@ func (app *application) listBookCommentsHandler(w http.ResponseWriter, r *http.R
 	}
 
 	var input struct {
-		data.Filters
+		filters.Filters
 	}
 
 	v := validator.New()
@@ -207,7 +209,7 @@ func (app *application) listBookCommentsHandler(w http.ResponseWriter, r *http.R
 	input.Filters.Sort = app.readString(qs, "sort", "created_at")
 	input.Filters.SortSafelist = []string{"id", "created_at", "-id", "-created_at"}
 
-	if data.ValidateFilters(v, input.Filters); !v.Valid() {
+	if filters.ValidateFilters(v, input.Filters); !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}

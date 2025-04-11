@@ -2,6 +2,8 @@ package main
 
 import (
 	"book-service/internal/data"
+	"book-service/internal/domain"
+	"book-service/internal/filters"
 	"book-service/internal/validator"
 	"errors"
 	"fmt"
@@ -23,7 +25,7 @@ func (app *application) createGenreHandler(w http.ResponseWriter, r *http.Reques
 
 	v := validator.New()
 
-	genre := &data.Genre{
+	genre := &domain.Genre{
 		Title:         input.Title,
 		SubgenreCount: input.SubgenreCount,
 		URL:           input.URL,
@@ -160,7 +162,7 @@ func (app *application) deleteGenreHandler(w http.ResponseWriter, r *http.Reques
 func (app *application) listGenreHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Title string
-		data.Filters
+		filters.Filters
 	}
 	v := validator.New()
 
@@ -175,7 +177,7 @@ func (app *application) listGenreHandler(w http.ResponseWriter, r *http.Request)
 
 	input.Filters.SortSafelist = []string{"id", "title", "subgenre_count", "url", "-id", "-title", "-subgenre_count", "-url"}
 
-	if data.ValidateFilters(v, input.Filters); !v.Valid() {
+	if filters.ValidateFilters(v, input.Filters); !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}

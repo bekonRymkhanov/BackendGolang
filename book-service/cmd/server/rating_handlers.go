@@ -2,6 +2,7 @@ package main
 
 import (
 	"book-service/internal/data"
+	"book-service/internal/domain"
 	"book-service/internal/validator"
 	"errors"
 	"fmt"
@@ -24,7 +25,7 @@ func (app *application) createRatingHandler(w http.ResponseWriter, r *http.Reque
 
 	v := validator.New()
 
-	rating := &data.Rating{
+	rating := &domain.Rating{
 		BookID: input.BookID,
 		UserID: userID,
 		Score:  input.Score,
