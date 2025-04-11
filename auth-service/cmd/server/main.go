@@ -104,9 +104,8 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	// Health Check - возможно пригодиться в будущем, посмотрим
+	// Health Check
 	router.GET("/health", func(c *gin.Context) {
-		// Check database connection
 		if sqlDB, err := db.DB(); err != nil {
 			c.JSON(http.StatusServiceUnavailable, gin.H{
 				"status": "down",
