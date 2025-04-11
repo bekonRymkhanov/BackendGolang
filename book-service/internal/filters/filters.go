@@ -1,4 +1,4 @@
-package data
+package filters
 
 import (
 	"book-service/internal/validator"
@@ -7,11 +7,11 @@ import (
 )
 
 type Metadata struct {
-	CurrentPage  int `json:"current_page,omitempty"`
-	PageSize     int `json:"page_size,omitempty"`
-	FirstPage    int `json:"first_page,omitempty"`
-	LastPage     int `json:"last_page,omitempty"`
-	TotalRecords int `json:"total_records,omitempty"`
+	CurrentPage  int
+	PageSize     int
+	FirstPage    int
+	LastPage     int
+	TotalRecords int
 }
 
 type Filters struct {
@@ -21,10 +21,10 @@ type Filters struct {
 	SortSafelist []string
 }
 
-func (f Filters) limit() int {
+func (f Filters) Limit() int {
 	return f.PageSize
 }
-func (f Filters) offset() int {
+func (f Filters) Offset() int {
 	return (f.Page - 1) * f.PageSize
 }
 
@@ -35,7 +35,7 @@ func ValidateFilters(v *validator.Validator, f Filters) {
 	v.Check(f.PageSize <= 100, "page_size", "must be a maximum of 100")
 	v.Check(validator.In(f.Sort, f.SortSafelist...), "sort", "invalid sort value")
 }
-func (f Filters) sortColumn() string {
+func (f Filters) SortColumn() string {
 	for _, safeValue := range f.SortSafelist {
 		if f.Sort == safeValue {
 			return strings.TrimPrefix(f.Sort, "-")
@@ -43,13 +43,14 @@ func (f Filters) sortColumn() string {
 	}
 	panic("unsafe sort parameter: " + f.Sort)
 }
-func (f Filters) sortDirection() string {
+func (f Filters) SortDirection() string {
 	if strings.HasPrefix(f.Sort, "-") {
 		return "DESC"
 	}
 	return "ASC"
 }
-func calculateMetadata(totalRecords, page, pageSize int) Metadata {
+
+func CalculateMetadata(totalRecords, page, pageSize int) Metadata {
 	if totalRecords == 0 {
 		return Metadata{}
 	}

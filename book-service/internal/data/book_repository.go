@@ -1,6 +1,8 @@
 package data
 
 import (
+	"book-service/internal/domain"
+	"book-service/internal/filters"
 	"book-service/internal/validator"
 	"context"
 	"database/sql"
@@ -13,7 +15,7 @@ type BookModel struct {
 	DB *sql.DB
 }
 
-func (e BookModel) Insert(book *Book) error {
+func (e BookModel) Insert(book *domain.Book) error {
 	query := `INSERT INTO books (title, author, main_genre, sub_genre, type, price, rating, people_rated, url) 
 				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 				RETURNING id, version`
@@ -25,7 +27,7 @@ func (e BookModel) Insert(book *Book) error {
 
 	return e.DB.QueryRowContext(ctx, query, args...).Scan(&book.ID, &book.Version)
 }
-func (e BookModel) Get(id int64) (*Book, error) {
+func (e BookModel) Get(id int64) (*domain.Book, error) {
 	if id < 1 {
 		return nil, ErrRecordNotFound
 	}
@@ -33,7 +35,7 @@ func (e BookModel) Get(id int64) (*Book, error) {
 	query := `SELECT id,author, title, main_genre, sub_genre, type, price, rating, people_rated, url, version
 				FROM books
 				WHERE id = $1`
-	var book Book
+	var book domain.Book
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -62,7 +64,7 @@ func (e BookModel) Get(id int64) (*Book, error) {
 	return &book, nil
 }
 
-func (e BookModel) Update(book *Book) error {
+func (e BookModel) Update(book *domain.Book) error {
 	query := `UPDATE books
 				SET title = $1, author = $2, main_genre = $3, sub_genre = $4, type = $5, price = $6, rating = $7, people_rated = $8, url = $9, version = version + 1
 				WHERE id = $10 AND version = $11
@@ -125,29 +127,29 @@ func (e BookModel) Delete(id int64) error {
 	return nil
 }
 
-func (e BookModel) GetAll(title string, filters Filters) ([]*Book, Metadata, error) {
+func (e BookModel) GetAll(title string, mfilters filters.Filters) ([]*domain.Book, filters.Metadata, error) {
 	query := fmt.Sprintf(`
 		SELECT count(*) OVER(), id, author, title, main_genre, sub_genre, type, price, rating, people_rated, url, version
 		FROM books
 		WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '')
 		ORDER BY %s %s, id ASC
-		LIMIT $2 OFFSET $3`, filters.sortColumn(), filters.sortDirection())
+		LIMIT $2 OFFSET $3`, mfilters.SortColumn(), mfilters.SortDirection())
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := e.DB.QueryContext(ctx, query, title, filters.limit(), filters.offset())
+	rows, err := e.DB.QueryContext(ctx, query, title, mfilters.Limit(), mfilters.Offset())
 	if err != nil {
-		return nil, Metadata{}, err
+		return nil, filters.Metadata{}, err
 	}
 
 	defer rows.Close()
 
 	totalRecords := 0
-	books := []*Book{}
+	books := []*domain.Book{}
 
 	for rows.Next() {
-		var book Book
+		var book domain.Book
 		err := rows.Scan(
 			&totalRecords,
 			&book.ID,
@@ -163,21 +165,21 @@ func (e BookModel) GetAll(title string, filters Filters) ([]*Book, Metadata, err
 			&book.Version,
 		)
 		if err != nil {
-			return nil, Metadata{}, err
+			return nil, filters.Metadata{}, err
 		}
 
 		books = append(books, &book)
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, Metadata{}, err
+		return nil, filters.Metadata{}, err
 	}
 
-	metadata := calculateMetadata(totalRecords, filters.Page, filters.PageSize)
+	metadata := filters.CalculateMetadata(totalRecords, mfilters.Page, mfilters.PageSize)
 
 	return books, metadata, nil
 }
-func (e BookModel) GetByGenre(genre string) ([]*Book, error) {
+func (e BookModel) GetByGenre(genre string) ([]*domain.Book, error) {
 	query := `
 		SELECT id, author, title, main_genre, sub_genre, type, price, rating, people_rated, url, version
 		FROM books
@@ -193,10 +195,10 @@ func (e BookModel) GetByGenre(genre string) ([]*Book, error) {
 	}
 	defer rows.Close()
 
-	var books []*Book
+	var books []*domain.Book
 
 	for rows.Next() {
-		var book Book
+		var book domain.Book
 		err := rows.Scan(
 			&book.ID,
 			&book.Author,
@@ -223,7 +225,7 @@ func (e BookModel) GetByGenre(genre string) ([]*Book, error) {
 	return books, nil
 }
 
-func ValidateBook(v *validator.Validator, book *Book) {
+func ValidateBook(v *validator.Validator, book *domain.Book) {
 	v.Check(book.Author != "", "Author", "must be provided")
 	v.Check(len(book.Title) <= 500, "title", "must not be more than 500 bytes long")
 	v.Check(book.MainGenre != "", "main_genre", "must be provided")

@@ -1,7 +1,10 @@
 package data
 
 import (
+	"book-service/internal/domain"
+	"book-service/internal/filters"
 	"book-service/internal/validator"
+
 	"context"
 	"database/sql"
 	"errors"
@@ -13,7 +16,7 @@ type SubGenreModel struct {
 	DB *sql.DB
 }
 
-func (e SubGenreModel) Insert(sub_genre *SubGenre) error {
+func (e SubGenreModel) Insert(sub_genre *domain.SubGenre) error {
 	query := `INSERT INTO subgenres ( title, main_genre, book_count, url)
 				VALUES ($1, $2, $3, $4)
 				RETURNING id, version`
@@ -26,14 +29,14 @@ func (e SubGenreModel) Insert(sub_genre *SubGenre) error {
 	return e.DB.QueryRowContext(ctx, query, args...).Scan(&sub_genre.ID, &sub_genre.Version)
 }
 
-func (m SubGenreModel) Get(id int64) (*SubGenre, error) {
+func (m SubGenreModel) Get(id int64) (*domain.SubGenre, error) {
 	if id < 1 {
 		return nil, ErrRecordNotFound
 	}
 
 	query := `SELECT id, title, main_genre, book_count, url, 1 FROM subgenres WHERE id = $1`
 
-	var subGenre SubGenre
+	var subGenre domain.SubGenre
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -58,7 +61,7 @@ func (m SubGenreModel) Get(id int64) (*SubGenre, error) {
 	return &subGenre, nil
 }
 
-func (m SubGenreModel) Update(subGenre *SubGenre) error {
+func (m SubGenreModel) Update(subGenre *domain.SubGenre) error {
 	query := `UPDATE subgenres
 				SET title = $1, main_genre = $2, book_count = $3, url = $4
 				WHERE id = $5 AND version = $6
@@ -115,28 +118,28 @@ func (m SubGenreModel) Delete(id int64) error {
 	return nil
 }
 
-func (m SubGenreModel) GetAll(title string, filters Filters) ([]*SubGenre, Metadata, error) {
+func (m SubGenreModel) GetAll(title string, mfilters filters.Filters) ([]*domain.SubGenre, filters.Metadata, error) {
 	query := fmt.Sprintf(`
 		SELECT count(*) OVER(), id, title, main_genre, book_count, url, 1
 		FROM subgenres
 		WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '')
 		ORDER BY %s %s, id ASC
-		LIMIT $2 OFFSET $3`, filters.sortColumn(), filters.sortDirection())
+		LIMIT $2 OFFSET $3`, mfilters.SortColumn(), mfilters.SortDirection())
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := m.DB.QueryContext(ctx, query, title, filters.limit(), filters.offset())
+	rows, err := m.DB.QueryContext(ctx, query, title, mfilters.Limit(), mfilters.Offset())
 	if err != nil {
-		return nil, Metadata{}, err
+		return nil, filters.Metadata{}, err
 	}
 	defer rows.Close()
 
 	totalRecords := 0
-	subGenres := []*SubGenre{}
+	subGenres := []*domain.SubGenre{}
 
 	for rows.Next() {
-		var sg SubGenre
+		var sg domain.SubGenre
 		err := rows.Scan(
 			&totalRecords,
 			&sg.ID,
@@ -146,21 +149,22 @@ func (m SubGenreModel) GetAll(title string, filters Filters) ([]*SubGenre, Metad
 			&sg.URL,
 			&sg.Version,
 		)
+
 		if err != nil {
-			return nil, Metadata{}, err
+			return nil, filters.Metadata{}, err
 		}
 		subGenres = append(subGenres, &sg)
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, Metadata{}, err
+		return nil, filters.Metadata{}, err
 	}
 
-	metadata := calculateMetadata(totalRecords, filters.Page, filters.PageSize)
+	metadata := filters.CalculateMetadata(totalRecords, mfilters.Page, mfilters.PageSize)
 	return subGenres, metadata, nil
 }
 
-func (m SubGenreModel) GetByGenre(genre string) ([]*SubGenre, error) {
+func (m SubGenreModel) GetByGenre(genre string) ([]*domain.SubGenre, error) {
 	query := `SELECT id, title, main_genre, book_count, url, 1 FROM subgenres WHERE main_genre = $1`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -172,10 +176,10 @@ func (m SubGenreModel) GetByGenre(genre string) ([]*SubGenre, error) {
 	}
 	defer rows.Close()
 
-	subGenres := []*SubGenre{}
+	subGenres := []*domain.SubGenre{}
 
 	for rows.Next() {
-		var sg SubGenre
+		var sg domain.SubGenre
 		err := rows.Scan(
 			&sg.ID,
 			&sg.Title,
@@ -197,7 +201,7 @@ func (m SubGenreModel) GetByGenre(genre string) ([]*SubGenre, error) {
 	return subGenres, nil
 }
 
-func ValidateSubGenre(v *validator.Validator, subgenre *SubGenre) {
+func ValidateSubGenre(v *validator.Validator, subgenre *domain.SubGenre) {
 	v.Check(subgenre.Title != "", "title", "must be provided")
 	v.Check(subgenre.MainGenre != "", "main_genre", "must be provided")
 	v.Check(len(subgenre.Title) <= 500, "title", "must not be more than 500 bytes long")

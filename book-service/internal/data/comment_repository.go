@@ -1,6 +1,8 @@
 package data
 
 import (
+	"book-service/internal/domain"
+	"book-service/internal/filters"
 	"book-service/internal/validator"
 	"context"
 	"database/sql"
@@ -13,7 +15,7 @@ type CommentModel struct {
 	DB *sql.DB
 }
 
-func (m CommentModel) Insert(comment *Comment) error {
+func (m CommentModel) Insert(comment *domain.Comment) error {
 	query := `
 		INSERT INTO comments (book_id, user_id, content, created_at)
 		VALUES ($1, $2, $3, $4)
@@ -33,7 +35,7 @@ func (m CommentModel) Insert(comment *Comment) error {
 	return m.DB.QueryRowContext(ctx, query, args...).Scan(&comment.ID, &comment.Version)
 }
 
-func (m CommentModel) Get(id int64) (*Comment, error) {
+func (m CommentModel) Get(id int64) (*domain.Comment, error) {
 	if id < 1 {
 		return nil, ErrRecordNotFound
 	}
@@ -44,7 +46,7 @@ func (m CommentModel) Get(id int64) (*Comment, error) {
 		WHERE id = $1
 	`
 
-	var comment Comment
+	var comment domain.Comment
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -70,7 +72,7 @@ func (m CommentModel) Get(id int64) (*Comment, error) {
 	return &comment, nil
 }
 
-func (m CommentModel) Update(comment *Comment) error {
+func (m CommentModel) Update(comment *domain.Comment) error {
 	query := `
 		UPDATE comments
 		SET content = $1, version = version + 1
@@ -131,31 +133,31 @@ func (m CommentModel) Delete(id, userID int64) error {
 	return nil
 }
 
-func (m CommentModel) GetAllForBook(bookID int64, filters Filters) ([]*Comment, Metadata, error) {
+func (m CommentModel) GetAllForBook(bookID int64, mfilters filters.Filters) ([]*domain.Comment, filters.Metadata, error) {
 	query := fmt.Sprintf(`
 		SELECT count(*) OVER(), id, book_id, user_id, content, created_at, version
 		FROM comments
 		WHERE book_id = $1
 		ORDER BY %s %s, id ASC
 		LIMIT $2 OFFSET $3
-	`, filters.sortColumn(), filters.sortDirection())
+	`, mfilters.SortColumn(), mfilters.SortDirection())
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	args := []interface{}{bookID, filters.limit(), filters.offset()}
+	args := []interface{}{bookID, mfilters.Limit(), mfilters.Offset()}
 
 	rows, err := m.DB.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, Metadata{}, err
+		return nil, filters.Metadata{}, err
 	}
 	defer rows.Close()
 
 	totalRecords := 0
-	comments := []*Comment{}
+	comments := []*domain.Comment{}
 
 	for rows.Next() {
-		var comment Comment
+		var comment domain.Comment
 		err := rows.Scan(
 			&totalRecords,
 			&comment.ID,
@@ -166,22 +168,22 @@ func (m CommentModel) GetAllForBook(bookID int64, filters Filters) ([]*Comment, 
 			&comment.Version,
 		)
 		if err != nil {
-			return nil, Metadata{}, err
+			return nil, filters.Metadata{}, err
 		}
 
 		comments = append(comments, &comment)
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, Metadata{}, err
+		return nil, filters.Metadata{}, err
 	}
 
-	metadata := calculateMetadata(totalRecords, filters.Page, filters.PageSize)
+	metadata := filters.CalculateMetadata(totalRecords, mfilters.Page, mfilters.PageSize)
 
 	return comments, metadata, nil
 }
 
-func ValidateComment(v *validator.Validator, comment *Comment) {
+func ValidateComment(v *validator.Validator, comment *domain.Comment) {
 	v.Check(comment.BookID > 0, "book_id", "must be provided")
 	v.Check(comment.UserID > 0, "user_id", "must be provided")
 	v.Check(comment.Content != "", "content", "must be provided")

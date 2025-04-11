@@ -1,4 +1,4 @@
-package data
+package domain
 
 type SubGenre struct {
 	ID        int64   `json:"id"`

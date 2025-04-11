@@ -1,6 +1,7 @@
 package data
 
 import (
+	"book-service/internal/domain"
 	"book-service/internal/validator"
 	"context"
 	"database/sql"
@@ -12,7 +13,7 @@ type RatingModel struct {
 	DB *sql.DB
 }
 
-func (m RatingModel) Insert(rating *Rating) error {
+func (m RatingModel) Insert(rating *domain.Rating) error {
 	// First check if the user has already rated this book
 	query := `
 		SELECT id, version FROM ratings
@@ -60,7 +61,7 @@ func (m RatingModel) Insert(rating *Rating) error {
 	return err
 }
 
-func (m RatingModel) Get(id int64) (*Rating, error) {
+func (m RatingModel) Get(id int64) (*domain.Rating, error) {
 	if id < 1 {
 		return nil, ErrRecordNotFound
 	}
@@ -71,7 +72,7 @@ func (m RatingModel) Get(id int64) (*Rating, error) {
 		WHERE id = $1
 	`
 
-	var rating Rating
+	var rating domain.Rating
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -97,14 +98,14 @@ func (m RatingModel) Get(id int64) (*Rating, error) {
 	return &rating, nil
 }
 
-func (m RatingModel) GetUserRatingForBook(userID, bookID int64) (*Rating, error) {
+func (m RatingModel) GetUserRatingForBook(userID, bookID int64) (*domain.Rating, error) {
 	query := `
 		SELECT id, book_id, user_id, score, created_at, version
 		FROM ratings
 		WHERE user_id = $1 AND book_id = $2
 	`
 
-	var rating Rating
+	var rating domain.Rating
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -130,7 +131,7 @@ func (m RatingModel) GetUserRatingForBook(userID, bookID int64) (*Rating, error)
 	return &rating, nil
 }
 
-func (m RatingModel) Update(rating *Rating) error {
+func (m RatingModel) Update(rating *domain.Rating) error {
 	query := `
 		UPDATE ratings
 		SET score = $1, version = version + 1
@@ -191,7 +192,7 @@ func (m RatingModel) Delete(id, userID int64) error {
 	return nil
 }
 
-func (m RatingModel) GetAllForBook(bookID int64) ([]*Rating, error) {
+func (m RatingModel) GetAllForBook(bookID int64) ([]*domain.Rating, error) {
 	query := `
 		SELECT id, book_id, user_id, score, created_at, version
 		FROM ratings
@@ -208,10 +209,10 @@ func (m RatingModel) GetAllForBook(bookID int64) ([]*Rating, error) {
 	}
 	defer rows.Close()
 
-	ratings := []*Rating{}
+	ratings := []*domain.Rating{}
 
 	for rows.Next() {
-		var rating Rating
+		var rating domain.Rating
 		err := rows.Scan(
 			&rating.ID,
 			&rating.BookID,
@@ -255,7 +256,7 @@ func (m RatingModel) GetAverageRating(bookID int64) (float64, int, error) {
 	return averageScore, count, nil
 }
 
-func ValidateRating(v *validator.Validator, rating *Rating) {
+func ValidateRating(v *validator.Validator, rating *domain.Rating) {
 	v.Check(rating.BookID > 0, "book_id", "must be provided")
 	v.Check(rating.UserID > 0, "user_id", "must be provided")
 	v.Check(rating.Score >= 1 && rating.Score <= 5, "score", "must be between 1 and 5")
