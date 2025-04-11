@@ -23,7 +23,7 @@ services:
 
   auth-service:
     build:
-      context: ..
+      context: ./
       dockerfile: Dockerfile
     container_name: book-auth-service
     depends_on:

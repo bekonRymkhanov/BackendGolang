@@ -19,7 +19,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	// Здесь переименовали что бы избежать конфликта с уже импортированной package
+
+	// Здесь переименовали что бы избежать конфликта с уже импортированным package-ом
 	pgdriver "gorm.io/driver/postgres"
 )
 
