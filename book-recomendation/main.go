@@ -341,6 +341,7 @@ func handleUserPreferencesRequest(config Config) http.HandlerFunc {
 			http.Error(w, "Failed to get user preferences", http.StatusInternalServerError)
 			return
 		}
+		fmt.Println(rawPrefs)
 
 		// Convert to map format
 		prefsMap := convertToPreferencesMap(rawPrefs)
@@ -407,27 +408,54 @@ func handleGlobalPreferencesRequest() http.HandlerFunc {
 			return
 		}
 
-		// Create default global preferences
+		// Query global preferences from database
+		query := `SELECT category, value, avg_weight FROM global_preferences ORDER BY category, avg_weight DESC`
+
+		rows, err := db.Query(query)
+		if err != nil {
+			log.Printf("Error fetching global preferences: %v", err)
+			http.Error(w, "Failed to get global preferences", http.StatusInternalServerError)
+			return
+		}
+		defer rows.Close()
+
+		// Prepare the response structure
 		globalPrefs := map[string]map[string]float64{
-			"Main Genre": {
-				"Fiction":     0.6,
-				"Non-Fiction": 0.4,
-			},
-			"Sub Genre": {
-				"Fantasy":   0.2,
-				"SciFi":     0.2,
-				"Mystery":   0.2,
-				"Romance":   0.2,
-				"Biography": 0.2,
-			},
-			"Type": {
-				"Paperback": 0.4,
-				"Hardcover": 0.3,
-				"eBook":     0.3,
-			},
-			"Author": {},
+			"Main Genre": {},
+			"Sub Genre":  {},
+			"Type":       {},
+			"Author":     {},
 		}
 
+		// Populate from database results
+		for rows.Next() {
+			var category, value string
+			var weight float64
+
+			if err := rows.Scan(&category, &value, &weight); err != nil {
+				log.Printf("Error scanning preference row: %v", err)
+				continue
+			}
+
+			// Normalize weight to 0-1 range (assuming weights in DB are on a scale like 1-5)
+			normalizedWeight := weight / 5.0
+
+			// Add to appropriate category
+			if _, exists := globalPrefs[category]; exists {
+				globalPrefs[category][value] = normalizedWeight
+			} else {
+				// Handle unexpected category
+				globalPrefs[category] = map[string]float64{value: normalizedWeight}
+			}
+		}
+
+		if err := rows.Err(); err != nil {
+			log.Printf("Error iterating preferences: %v", err)
+			http.Error(w, "Error processing preferences", http.StatusInternalServerError)
+			return
+		}
+
+		// Send response
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(globalPrefs)
 	}
