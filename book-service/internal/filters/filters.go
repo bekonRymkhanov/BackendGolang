@@ -21,6 +21,14 @@ type Filters struct {
 	SortSafelist []string
 }
 
+type BookSearch struct {
+	Title      string
+	Author     string
+	Main_genre string
+	Sub_genre  string
+	Type       string
+}
+
 func (f Filters) Limit() int {
 	return f.PageSize
 }
@@ -35,6 +43,7 @@ func ValidateFilters(v *validator.Validator, f Filters) {
 	v.Check(f.PageSize <= 100, "page_size", "must be a maximum of 100")
 	v.Check(validator.In(f.Sort, f.SortSafelist...), "sort", "invalid sort value")
 }
+
 func (f Filters) SortColumn() string {
 	for _, safeValue := range f.SortSafelist {
 		if f.Sort == safeValue {

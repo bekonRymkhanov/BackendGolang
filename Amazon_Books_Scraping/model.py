@@ -9,25 +9,69 @@ from pydantic import BaseModel
 from typing import List, Dict, Any
 from collections import defaultdict
 
+
+
 class ServiceAPI:
+
+
+
     def __init__(self, base_url: str):
         self.base_url = base_url 
+
+
+
     def get_user_preferences(self, user_id: int) -> Dict[str, Any]:
         response = requests.get(f"{self.base_url}/user/{user_id}/preferences")
-        if response.status_code == 200:
-            return response.json()
-        else:
-            raise Exception("Ошибка получения предпочтений пользователя")
+        try:
+            response = requests.get(f"{self.base_url}/user/{user_id}/preferences")
+            if response.status_code == 200:
+                return response.json()
+            elif response.status_code == 404:
+                # Return empty preferences if not found
+                return {"Main Genre": {}, "Sub Genre": {}, "Type": {}, "Author": {}}
+            else:
+                print(f"Error getting user preferences: {response.status_code}")
+                return {"Main Genre": {}, "Sub Genre": {}, "Type": {}, "Author": {}}
+        except Exception as e:
+            print(f"Exception getting user preferences: {str(e)}")
+            return {"Main Genre": {}, "Sub Genre": {}, "Type": {}, "Author": {}}
+        
+
+
     def update_user_preferences(self, user_id: int, preferences: dict):
-        response = requests.post(f"{self.base_url}/user/{user_id}/preferences", json=preferences)
-        if response.status_code != 200:
-            raise Exception("Ошибка обновления предпочтений пользователя")
+        try:
+            response = requests.post(f"{self.base_url}/user/{user_id}/preferences", json=preferences)
+            if response.status_code != 200:
+                print(f"Error updating user preferences: {response.status_code}")
+        except Exception as e:
+            print(f"Exception updating user preferences: {str(e)}")
+    
     def get_global_preferences(self) -> Dict[str, Any]:
-        response = requests.get(f"{self.base_url}/global/preferences")
-        if response.status_code == 200:
-            return response.json()
-        else:
-            raise Exception("Ошибка получения глобальных предпочтений")
+        # Instead of failing, provide default global preferences
+        try:
+            response = requests.get(f"{self.base_url}/global/preferences")
+            if response.status_code == 200:
+                return response.json()
+            else:
+                print(f"Error getting global preferences: {response.status_code}")
+                # Return default global preferences
+                return {
+                    "Main Genre": {"Fiction": 0.5, "Non-Fiction": 0.5},
+                    "Sub Genre": {"Fantasy": 0.5, "SciFi": 0.5, "Mystery": 0.5, "Romance": 0.5, "Biography": 0.5},
+                    "Type": {"Paperback": 0.5, "Hardcover": 0.5, "eBook": 0.5},
+                    "Author": {}  # Empty default for authors
+                }
+        except Exception as e:
+            print(f"Exception getting global preferences: {str(e)}")
+            # Return default global preferences
+            return {
+                "Main Genre": {"Fiction": 0.5, "Non-Fiction": 0.5},
+                "Sub Genre": {"Fantasy": 0.5, "SciFi": 0.5, "Mystery": 0.5, "Romance": 0.5, "Biography": 0.5},
+                "Type": {"Paperback": 0.5, "Hardcover": 0.5, "eBook": 0.5},
+                "Author": {}  # Empty default for authors
+            }
+
+
 
 app = FastAPI()
 class RecommendationRequest(BaseModel):
@@ -37,14 +81,18 @@ class RecommendationResponse(BaseModel):
     recommended_titles: List[str]
 
 def get_db_service() -> ServiceAPI:
-    return ServiceAPI(base_url="http://localhost:8000")
+    return ServiceAPI(base_url="http://localhost:8080")
 
 @app.post("/recommendations", response_model=RecommendationResponse)
 def recommendations_endpoint(request: RecommendationRequest, db_api: ServiceAPI = Depends(get_db_service)):
     try:
-        result = compute_recommendations(request.user_id, request.user_book_titles, db_api) # Лучше хранить тайтлы у юзеров
+        print(f"Processing request for user {request.user_id} with books: {request.user_book_titles}")
+        result = compute_recommendations(request.user_id, request.user_book_titles, db_api)
         return RecommendationResponse(**result)
     except Exception as e:
+        import traceback
+        print(f"Error processing recommendation: {str(e)}")
+        print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
 def collect_user_statistics(user_history, attributes):
@@ -57,7 +105,7 @@ def collect_user_statistics(user_history, attributes):
     user_count = len(user_history)
     return user_pref_sum, user_count
 
-def bayesian_update(global_pref, user_pref_sum, user_count, prior_strength=10):
+def bayesian_update(global_pref, user_pref_sum, user_count, prior_strength=1):
     updated_pref = {attr: {} for attr in global_pref}
     for attr in global_pref:
         for val in global_pref[attr]:
@@ -120,6 +168,7 @@ def zca_whitening(X, epsilon=1e-5):
 
 def compute_recommendations(user_id: int, user_book_titles: List[str], db_api: ServiceAPI) -> Dict[str, Any]:
     user_preferences = db_api.get_user_preferences(user_id)
+
     global_preferences = db_api.get_global_preferences()
     indices = get_books_by_title(user_book_titles, clean_data)
     user_books = [clean_data.iloc[ind] for ind in indices]
@@ -134,8 +183,8 @@ def compute_recommendations(user_id: int, user_book_titles: List[str], db_api: S
     rec_indices = filtered_indices[:10]
     recommended_titles = clean_data['Title'].iloc[rec_indices].tolist()
     return {"recommended_titles": recommended_titles}
-db_api = ServiceAPI(base_url="http://backend-service.example.com/api")
-books = pd.read_csv('/home/bekarys/Go/Amazon_Books_Scraping/Books_df.csv')  # change to your path
+db_api = ServiceAPI(base_url="http://localhost:8080")
+books = pd.read_csv('./Books_df.csv')  # change to your path
 clean_data = books.reset_index(drop=True)
 encoder = OneHotEncoder(sparse_output=False)
 features = encoder.fit_transform(clean_data[['Main Genre', 'Sub Genre', 'Type', 'Author']])

@@ -17,7 +17,6 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodGet, "/Books/:id", app.showBookHandler)
 	router.HandlerFunc(http.MethodPatch, "/Books/:id", app.updateBookHandler)
 	router.HandlerFunc(http.MethodDelete, "/Books/:id", app.deleteBookHandler)
-	router.HandlerFunc(http.MethodGet, "/Genre/by-book/:genre/Books", app.showBooksByGenreHandler)
 
 	router.HandlerFunc(http.MethodGet, "/Genres", app.listGenreHandler)
 	router.HandlerFunc(http.MethodPost, "/Genres", app.createGenreHandler)
@@ -30,7 +29,7 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodGet, "/SubGenres/:id", app.showSubGenreHandler)
 	router.HandlerFunc(http.MethodPatch, "/SubGenres/:id", app.updateSubGenreHandler)
 	router.HandlerFunc(http.MethodDelete, "/SubGenres/:id", app.deleteSubGenreHandler)
-	router.HandlerFunc(http.MethodGet, "/Genre/by-subgenere/:main_genre/SubGenres", app.showSubGenresByMainGenreHandler)
+	router.HandlerFunc(http.MethodGet, "/Genre/:main_genre/SubGenres", app.showSubGenresByMainGenreHandler)
 
 	router.HandlerFunc(http.MethodPost, "/comments", app.createCommentHandler)
 	router.HandlerFunc(http.MethodGet, "/comments/:id", app.showCommentHandler)

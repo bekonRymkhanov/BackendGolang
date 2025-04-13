@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -127,22 +128,68 @@ func (e BookModel) Delete(id int64) error {
 	return nil
 }
 
-func (e BookModel) GetAll(title string, mfilters filters.Filters) ([]*domain.Book, filters.Metadata, error) {
-	query := fmt.Sprintf(`
-		SELECT count(*) OVER(), id, author, title, main_genre, sub_genre, type, price, rating, people_rated, url, version
-		FROM books
-		WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '')
-		ORDER BY %s %s, id ASC
-		LIMIT $2 OFFSET $3`, mfilters.SortColumn(), mfilters.SortDirection())
+func (e BookModel) GetAll(mfilters filters.Filters, msearchOptions filters.BookSearch) ([]*domain.Book, filters.Metadata, error) {
+	where := []string{}
+	args := []interface{}{}
+	argPosition := 1
 
+	if msearchOptions.Title != "" {
+		where = append(where, fmt.Sprintf(
+			"(to_tsvector('simple', title) @@ plainto_tsquery('simple', $%d) OR title ILIKE $%d)", argPosition, argPosition+1))
+		args = append(args, msearchOptions.Title, "%"+msearchOptions.Title+"%")
+		argPosition += 2
+	}
+
+	if msearchOptions.Author != "" {
+		where = append(where, fmt.Sprintf(
+			"(to_tsvector('simple', author) @@ plainto_tsquery('simple', $%d) OR author ILIKE $%d)", argPosition, argPosition+1))
+		args = append(args, msearchOptions.Author, "%"+msearchOptions.Author+"%")
+		argPosition += 2
+	}
+	if msearchOptions.Main_genre != "" {
+		where = append(where, fmt.Sprintf(
+			"(to_tsvector('simple', main_genre) @@ plainto_tsquery('simple', $%d) OR main_genre ILIKE $%d)", argPosition, argPosition+1))
+		args = append(args, msearchOptions.Main_genre, "%"+msearchOptions.Main_genre+"%")
+		argPosition += 2
+	}
+	if msearchOptions.Sub_genre != "" {
+		where = append(where, fmt.Sprintf(
+			"(to_tsvector('simple', sub_genre) @@ plainto_tsquery('simple', $%d) OR sub_genre ILIKE $%d)", argPosition, argPosition+1))
+		args = append(args, msearchOptions.Sub_genre, "%"+msearchOptions.Sub_genre+"%")
+		argPosition += 2
+	}
+	if msearchOptions.Type != "" {
+		where = append(where, fmt.Sprintf(
+			"(to_tsvector('simple', type) @@ plainto_tsquery('simple', $%d) OR type ILIKE $%d)", argPosition, argPosition+1))
+		args = append(args, msearchOptions.Type, "%"+msearchOptions.Type+"%")
+		argPosition += 2
+	}
+
+	whereClause := ""
+	if len(where) > 0 {
+		whereClause = "WHERE " + strings.Join(where, " OR ")
+	}
+
+	query := fmt.Sprintf(`
+	SELECT count(*) OVER(), id, author, title, main_genre, sub_genre, type, price, rating, people_rated, url, version
+	FROM books
+	%s
+	ORDER BY %s %s, id ASC 
+	LIMIT $%d OFFSET $%d`,
+		whereClause,
+		mfilters.SortColumn(),
+		mfilters.SortDirection(),
+		argPosition,
+		argPosition+1)
+
+	args = append(args, mfilters.Limit(), mfilters.Offset())
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := e.DB.QueryContext(ctx, query, title, mfilters.Limit(), mfilters.Offset())
+	rows, err := e.DB.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, filters.Metadata{}, err
 	}
-
 	defer rows.Close()
 
 	totalRecords := 0
@@ -167,7 +214,6 @@ func (e BookModel) GetAll(title string, mfilters filters.Filters) ([]*domain.Boo
 		if err != nil {
 			return nil, filters.Metadata{}, err
 		}
-
 		books = append(books, &book)
 	}
 
@@ -179,6 +225,7 @@ func (e BookModel) GetAll(title string, mfilters filters.Filters) ([]*domain.Boo
 
 	return books, metadata, nil
 }
+
 func (e BookModel) GetByGenre(genre string) ([]*domain.Book, error) {
 	query := `
 		SELECT id, author, title, main_genre, sub_genre, type, price, rating, people_rated, url, version

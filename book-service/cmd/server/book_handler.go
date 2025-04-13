@@ -198,14 +198,18 @@ func (app *application) deleteBookHandler(w http.ResponseWriter, r *http.Request
 
 func (app *application) listBooksHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Title string
+		filters.BookSearch
 		filters.Filters
 	}
 	v := validator.New()
 
 	qs := r.URL.Query()
 
-	input.Title = app.readString(qs, "title", "")
+	input.BookSearch.Title = app.readString(qs, "title", "")
+	input.BookSearch.Author = app.readString(qs, "author", "")
+	input.BookSearch.Main_genre = app.readString(qs, "main_genre", "")
+	input.BookSearch.Sub_genre = app.readString(qs, "sub_genre", "")
+	input.BookSearch.Type = app.readString(qs, "type", "")
 
 	input.Filters.Page = app.readInt(qs, "page", 1, v)
 	input.Filters.PageSize = app.readInt(qs, "page_size", 20, v)
@@ -219,33 +223,12 @@ func (app *application) listBooksHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	books, metadata, err := app.models.Book.GetAll(input.Title, input.Filters)
+	books, metadata, err := app.models.Book.GetAll(input.Filters, input.BookSearch)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 	err = app.writeJSON(w, http.StatusOK, envelope{"books": books, "metadata": metadata}, nil)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-	}
-}
-func (app *application) showBooksByGenreHandler(w http.ResponseWriter, r *http.Request) {
-	// Extract the genre from the URL parameters
-	genre := r.URL.Query().Get("genre")
-
-	books, err := app.models.Book.GetByGenre(genre)
-	if err != nil {
-		switch {
-		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w, r)
-		default:
-			app.serverErrorResponse(w, r, err)
-		}
-		return
-	}
-
-	// Write the characters as a JSON response
-	err = app.writeJSON(w, http.StatusOK, envelope{"books": books}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
