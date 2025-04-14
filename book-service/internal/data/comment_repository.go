@@ -103,20 +103,20 @@ func (m CommentModel) Update(comment *domain.Comment) error {
 	return nil
 }
 
-func (m CommentModel) Delete(id, userID int64) error {
+func (m CommentModel) Delete(id int64) error {
 	if id < 1 {
 		return ErrRecordNotFound
 	}
 
 	query := `
 		DELETE FROM comments
-		WHERE id = $1 AND user_id = $2
+		WHERE id = $1 
 	`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	result, err := m.DB.ExecContext(ctx, query, id, userID)
+	result, err := m.DB.ExecContext(ctx, query, id)
 	if err != nil {
 		return err
 	}

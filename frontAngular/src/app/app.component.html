@@ -1,0 +1,24 @@
+<nav class="navbar">
+  <a routerLink="/home" class="navbar-logo">
+    <img src="assets/images/photo_2024-04-21_05-35-08.jpg" alt="logo" class="logo">
+    <span class="logo-text">LiteraSelf</span>
+  </a>
+  <div class="navbar-section-left">
+    
+  </div>
+  <div class="navbar-section-right">
+    <a routerLink="/books" class="navbar-item">Библиотека</a>
+    <a href="/reviews" class="navbar-item">Рецензии</a>
+    <ng-container *ngIf="!isLoggedIn">
+      <a href="/login" class="navbar-item">Регистрация/Вход</a>
+    </ng-container>
+    <ng-container *ngIf="isLoggedIn">
+      <a routerLink="/profile" class="navbar-logo">
+        <img src="https://w7.pngwing.com/pngs/462/470/png-transparent-drawing-che-guevara-celebrities-white-mammal.png" alt="profile" class="profile">
+      </a>
+      <button class="navbar-item" (click)="logout()">Выйти</button>
+
+    </ng-container>
+  </div>
+</nav>
+<router-outlet></router-outlet>

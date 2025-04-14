@@ -8,6 +8,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 func (app *application) createSubGenreHandler(w http.ResponseWriter, r *http.Request) {
@@ -202,8 +204,10 @@ func (app *application) listSubGenresHandler(w http.ResponseWriter, r *http.Requ
 }
 
 func (app *application) showSubGenresByMainGenreHandler(w http.ResponseWriter, r *http.Request) {
-	mainGenre := r.URL.Query().Get("main_genre")
 
+	params := httprouter.ParamsFromContext(r.Context())
+	mainGenre := params.ByName("main_genre")
+	fmt.Print(mainGenre)
 	subGenres, err := app.models.SubGenre.GetByGenre(mainGenre)
 	if err != nil {
 		switch {

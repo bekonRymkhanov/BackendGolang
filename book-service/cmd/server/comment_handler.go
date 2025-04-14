@@ -13,6 +13,7 @@ import (
 func (app *application) createCommentHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		BookID  int64  `json:"book_id"`
+		UserId  int64  `json:"user_id"`
 		Content string `json:"content"`
 	}
 
@@ -22,13 +23,11 @@ func (app *application) createCommentHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	userID := app.getUserIDFromRequest(r) // Zhanserik tut nuzhno userid chtoby poluchit iz requesta posmotri funcciu
-
 	v := validator.New()
 
 	comment := &domain.Comment{
 		BookID:  input.BookID,
-		UserID:  userID,
+		UserID:  input.UserId,
 		Content: input.Content,
 	}
 
@@ -95,8 +94,6 @@ func (app *application) updateCommentHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	userID := app.getUserIDFromRequest(r) // posmotri funkciu
-
 	comment, err := app.models.Comment.Get(id)
 	if err != nil {
 		switch {
@@ -108,18 +105,18 @@ func (app *application) updateCommentHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if comment.UserID != userID {
-		app.notPermittedResponse(w, r)
-		return
-	}
-
 	var input struct {
 		Content *string `json:"content"`
+		UserId  *int64  `json:"user_id"`
 	}
 
 	err = app.readJSON(w, r, &input)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
+		return
+	}
+	if comment.UserID != *input.UserId {
+		app.notPermittedResponse(w, r)
 		return
 	}
 
@@ -158,9 +155,7 @@ func (app *application) deleteCommentHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	userID := app.getUserIDFromRequest(r) // functiu
-
-	err = app.models.Comment.Delete(id, userID)
+	err = app.models.Comment.Delete(id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -228,5 +223,6 @@ func (app *application) listBookCommentsHandler(w http.ResponseWriter, r *http.R
 
 func (app *application) getUserIDFromRequest(r *http.Request) int64 {
 	// tipo beret userid otkuda to
+	fmt.Print(r)
 	return 1
 }
