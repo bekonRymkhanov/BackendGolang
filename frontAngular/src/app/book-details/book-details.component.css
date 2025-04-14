@@ -1,0 +1,38 @@
+.favorite-section {
+    margin: 15px 0;
+  }
+  
+  .favorite-button {
+    padding: 8px 16px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .favorite-button.favorited {
+    background-color: #ff6b6b;
+    color: white;
+    border-color: #ff6b6b;
+  }
+  
+  .favorite-button:hover {
+    background-color: #f8f8f8;
+  }
+  
+  .favorite-button.favorited:hover {
+    background-color: #ff5252;
+  }
+  
+  .favorite-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  
+  .loading-spinner {
+    display: inline-block;
+    margin-left: 10px;
+    font-size: 0.9em;
+    color: #666;
+  }

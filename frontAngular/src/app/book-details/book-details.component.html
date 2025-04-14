@@ -1,0 +1,49 @@
+<div *ngIf="book" class="book-details">
+    <h1>{{ book.title }}</h1>
+    <p><strong>Author:</strong> {{ book.author }}</p>
+    <p><strong>Genre:</strong> {{ book.main_genre }} - {{ book.sub_genre }}</p>
+    <p><strong>Type:</strong> {{ book.type }}</p>
+    <p><strong>Price:</strong> {{ book.price }}</p>
+    <p><strong>Rating:</strong> {{ book.rating }} / 5 ({{ book.people_rated }} ratings)</p>
+    <a href="{{book.url}}">Buy: Amazon</a>
+    <div class="favorite-section">
+        <button 
+          *ngIf="userSession?.user"
+          (click)="toggleFavorite()" 
+          [disabled]="addingToFavorites || removingFromFavorites"
+          class="favorite-button"
+          [class.favorited]="isFavorite">
+          <span *ngIf="!isFavorite">❤️ Add to Favorites</span>
+          <span *ngIf="isFavorite">❤️ Remove from Favorites</span>
+        </button>
+        <div *ngIf="addingToFavorites || removingFromFavorites" class="loading-spinner">
+          Updating...
+        </div>
+    </div>
+    <hr />
+  
+    <h2>Comments</h2>
+    <div *ngIf="comments.length > 0; else noComments">
+      <div *ngFor="let comment of comments" class="comment">
+        <p><strong>User {{ comment.user_id }}:</strong> {{ comment.content }}</p>
+        <p><small>Posted on: {{ comment.created_at }}</small></p>
+        <button *ngIf="userSession?.user?.id === comment.user_id" (click)="DeleteComment(comment.id)">Delete</button>
+      </div>
+    </div>
+    <ng-template #noComments>
+      <p>No comments yet. Be the first to comment!</p>
+    </ng-template>
+  
+    <hr />
+  
+    <h3>Add a Comment</h3>
+    <form (ngSubmit)="CreateComments()">
+      <textarea [(ngModel)]="newComment.content" name="content" rows="3" placeholder="Write your comment here..." required></textarea>
+      <br />
+      <button type="submit" [disabled]="!newComment.content.trim()">Submit</button>
+    </form>
+  </div>
+  
+  <div *ngIf="!book" class="loading">
+    <p>Loading book details...</p>
+  </div>

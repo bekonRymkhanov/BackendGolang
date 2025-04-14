@@ -1,0 +1,50 @@
+
+
+<div class="search-form">
+    <h2>Search Books</h2>
+    <form (ngSubmit)="onSearch()" class="form-inline">
+      <input type="text" [(ngModel)]="filters.title" name="title" placeholder="Title" />
+      <input type="text" [(ngModel)]="filters.author" name="author" placeholder="Author" />
+      <input type="text" [(ngModel)]="filters.main_genre" name="main_genre" placeholder="Main Genre" />
+      <button type="submit">Search</button>
+      <button type="button" (click)="onClear()">Clear</button>
+    </form>
+  </div>
+  
+  <div *ngIf="!loaded">Loading books...</div>
+  
+  <div *ngIf="loaded && books.length === 0">
+    <p>No books found.</p>
+  </div>
+
+  <div *ngIf="loaded && books.length > 0">
+    <h2>Book List</h2>
+    <button type="button" (click)="PreviousPage()">PreviousPage</button>
+    <button type="button" (click)="NextPage()">NextPage</button>
+    
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Author</th>
+          <th>Main Genre</th>
+          <th>Rating</th>
+
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let book of books">
+          <a [routerLink]="['/books', book.id]">{{ book.title }}</a>
+          <td>{{ book.author }}</td>
+          <td>{{ book.main_genre }}</td>
+          <td>{{ book.rating }} ★</td>
+        </tr>
+      </tbody>
+    </table>
+  
+    <p>
+      Showing page {{ metadata.CurrentPage }} of {{ metadata.LastPage}} ({{ metadata.TotalRecords }} total books)
+    </p>
+
+
+  </div>

@@ -1,0 +1,52 @@
+<div class="profile-container" *ngIf="userSession">
+    <div class="profile-header">
+      <h1>User Profile</h1>
+    </div>
+    
+    <div class="profile-content" *ngIf="userSession.user">
+      <div class="profile-section">
+        <h2>Personal Information</h2>
+        <div class="profile-field">
+          <strong>Name:</strong> {{ userSession.user.name }}
+        </div>
+        <div class="profile-field">
+          <strong>Email:</strong> {{ userSession.user.email }}
+        </div>
+        <div class="profile-field">
+          <strong>Member Since:</strong> {{ userSession.user.created_at }}
+        </div>
+      </div>
+
+      <div class="profile-section">
+        <h2>Account Details</h2>
+        <div class="profile-field">
+          <strong>User ID:</strong> {{ userSession.user.id }}
+        </div>
+        <div class="profile-field">
+          <strong>Account Status:</strong> 
+          <span [ngClass]="{'active-status': userSession.user.activated, 'inactive-status': !userSession.user.activated}">
+            {{ userSession.user.activated ? 'Active' : 'Inactive' }}
+          </span>
+        </div>
+        <div class="profile-field">
+          <strong>Admin Rights:</strong> {{ userSession.user.is_admin ? 'Yes' : 'No' }}
+        </div>
+      </div>
+
+      <div class="profile-section" *ngIf="userSession.user.favorite_episodes?.length">
+        <h2>Favorite Episodes</h2>
+        <ul class="favorites-list">
+          <li *ngFor="let episode of userSession.user.favorite_episodes">
+            Episode #{{ episode }}
+          </li>
+        </ul>
+      </div>
+
+      <div class="profile-section">
+        <h2>Session Information</h2>
+        <div class="profile-field">
+          <strong>Token Expiry:</strong> {{ userSession.authentication_token.expiry }}
+        </div>
+      </div>
+    </div>
+  </div>

@@ -12,14 +12,8 @@ from collections import defaultdict
 
 
 class ServiceAPI:
-
-
-
     def __init__(self, base_url: str):
         self.base_url = base_url 
-
-
-
     def get_user_preferences(self, user_id: int) -> Dict[str, Any]:
         response = requests.get(f"{self.base_url}/user/{user_id}/preferences")
         try:
@@ -36,8 +30,6 @@ class ServiceAPI:
             print(f"Exception getting user preferences: {str(e)}")
             return {"Main Genre": {}, "Sub Genre": {}, "Type": {}, "Author": {}}
         
-
-
     def update_user_preferences(self, user_id: int, preferences: dict):
         try:
             response = requests.post(f"{self.base_url}/user/{user_id}/preferences", json=preferences)
@@ -45,7 +37,15 @@ class ServiceAPI:
                 print(f"Error updating user preferences: {response.status_code}")
         except Exception as e:
             print(f"Exception updating user preferences: {str(e)}")
-    
+
+    def update_global_preferences(self, preferences: dict):
+        try:
+            response = requests.post(f"{self.base_url}/global/preferences", json=preferences)
+            if response.status_code != 200:
+                print(f"Error updating user preferences: {response.status_code}")
+        except Exception as e:
+            print(f"Exception updating user preferences: {str(e)}")
+
     def get_global_preferences(self) -> Dict[str, Any]:
         # Instead of failing, provide default global preferences
         try:
@@ -114,6 +114,79 @@ def bayesian_update(global_pref, user_pref_sum, user_count, prior_strength=1):
             updated_pref[attr][val] = (prior_strength * prior + evidence) / (prior_strength + user_count)
     return updated_pref
 
+def update_global_preferences(db_api: ServiceAPI, attributes: List[str]) -> Dict[str, Dict[str, float]]:
+    """
+    Вычисляет и обновляет глобальные предпочтения на основе средних значений
+    предпочтений всех пользователей.
+
+    Args:
+        db_api: Экземпляр ServiceAPI для доступа к базе данных.
+        attributes: Список атрибутов, по которым строятся предпочтения.
+
+    Returns:
+        Словарь с обновленными глобальными предпочтениями.
+    """
+    print("Запуск обновления глобальных предпочтений...")
+    try:
+        # 1. Получаем предпочтения ВСЕХ пользователей из БД
+        #    Предполагаем, что db_api имеет такой метод.
+        #    Он должен вернуть что-то вроде List[Dict[str, Dict[str, float]]]
+        all_user_prefs = db_api.get_all_user_preferences()
+        if not all_user_prefs:
+            print("Не найдено предпочтений пользователей для обновления глобальных.")
+            # Можно вернуть текущие глобальные или пустой словарь/дефолтные значения
+            return db_api.get_global_preferences() # Возвращаем текущие, если ничего не нашли
+
+        print(f"Получено предпочтений от {len(all_user_prefs)} пользователей.")
+
+        # 2. Агрегируем оценки и счетчики для каждого атрибута/значения
+        aggregated_scores = {attr: defaultdict(float) for attr in attributes}
+        aggregated_counts = {attr: defaultdict(int) for attr in attributes}
+        all_attribute_values = {attr: set() for attr in attributes} # Собираем все возможные значения
+
+        for user_pref in all_user_prefs:
+            for attr in attributes:
+                # Проверяем, есть ли у пользователя предпочтения по этому атрибуту
+                if attr in user_pref:
+                    for value, score in user_pref[attr].items():
+                        if score is not None: # Убедимся, что оценка существует
+                           aggregated_scores[attr][value] += float(score) # Суммируем оценки
+                           aggregated_counts[attr][value] += 1          # Считаем, сколько раз значение встречалось
+                           all_attribute_values[attr].add(value)       # Добавляем значение в общий список
+
+        # 3. Вычисляем средние значения для новых глобальных предпочтений
+        new_global_preferences = {attr: {} for attr in attributes}
+        for attr in attributes:
+            # Используем все значения, встретившиеся хотя бы у одного пользователя
+            for value in all_attribute_values[attr]:
+                total_score = aggregated_scores[attr][value]
+                count = aggregated_counts[attr][value]
+
+                if count > 0:
+                    average_score = total_score / count
+                    new_global_preferences[attr][value] = average_score
+                else:
+                    # Этого не должно случиться при такой логике, но на всякий случай
+                    # Можно установить дефолтное значение (например, 0 или взять из старых глобальных)
+                    new_global_preferences[attr][value] = 0.0 # Или другое дефолтное значение
+
+        # 5. Сохраняем обновленные глобальные предпочтения в БД
+        #    Предполагаем, что db_api имеет такой метод.
+        db_api.update_global_preferences(new_global_preferences)
+        print("Глобальные предпочтения успешно обновлены.")
+
+        return new_global_preferences
+
+    except Exception as e:
+        print(f"Ошибка при обновлении глобальных предпочтений: {e}")
+        # В случае ошибки можно вернуть старые глобальные предпочтения
+        try:
+            return db_api.get_global_preferences()
+        except Exception as db_e:
+            print(f"Не удалось получить даже старые глобальные предпочтения: {db_e}")
+            return {} 
+        
+
 def update_preferences_from_history(user_history, old_user_preferences, global_preferences, 
                                     attributes=['Main Genre', 'Sub Genre', 'Type', 'Author'], 
                                     prior_strength=10, alpha=0.1):
@@ -171,7 +244,9 @@ def compute_recommendations(user_id: int, user_book_titles: List[str], db_api: S
 
     global_preferences = db_api.get_global_preferences()
     indices = get_books_by_title(user_book_titles, clean_data)
+
     user_books = [clean_data.iloc[ind] for ind in indices]
+
     user_preferences = update_preferences_from_history(user_books, user_preferences, global_preferences)
     db_api.update_user_preferences(user_id, user_preferences)
     book_preferences = [compute_explicit_weight(clean_data.iloc[idx], user_preferences) for idx in indices]
@@ -183,12 +258,16 @@ def compute_recommendations(user_id: int, user_book_titles: List[str], db_api: S
     rec_indices = filtered_indices[:10]
     recommended_titles = clean_data['Title'].iloc[rec_indices].tolist()
     return {"recommended_titles": recommended_titles}
+
+
 db_api = ServiceAPI(base_url="http://localhost:8080")
 books = pd.read_csv('./Books_df.csv')  # change to your path
 clean_data = books.reset_index(drop=True)
 encoder = OneHotEncoder(sparse_output=False)
 features = encoder.fit_transform(clean_data[['Main Genre', 'Sub Genre', 'Type', 'Author']])
 features_whited = zca_whitening(features)
+ATTRIBUTES_FOR_PREFERENCES = ['Main Genre', 'Sub Genre', 'Type', 'Author']
+initial_global_preferences = update_global_preferences(db_api, ATTRIBUTES_FOR_PREFERENCES)
 
 if __name__ == "__main__":
     import uvicorn

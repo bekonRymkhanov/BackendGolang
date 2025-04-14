@@ -1,0 +1,108 @@
+body, h1, h2, h3, p, ul, li, figure {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  color: #333;
+  background-color: #fff;
+}
+
+main {
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+h1, h2, h3 {
+  color: #0056b3;
+}
+
+h1 {
+  margin-bottom: 20px;
+  font-size: 28px;
+}
+
+h2 {
+  margin-top: 20px;
+  margin-bottom: 15px;
+  font-size: 24px;
+}
+
+p {
+  margin-bottom: 10px;
+}
+
+/* Section styling */
+section {
+  margin-bottom: 20px;
+}
+
+/* Values list */
+.our-values ul {
+  padding-left: 20px;
+}
+
+.our-values li {
+  margin-bottom: 10px;
+}
+
+/* Team members */
+.meet-the-team .team-members {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.team-member {
+  flex: 1 1 300px;
+  margin: 10px;
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.team-member img {
+  width: 100%;
+  height: auto;
+  max-width: 200px;
+  border-radius: 50%;
+  margin: 0 auto;
+  display: block;
+}
+
+.team-member h3 {
+  margin: 15px 0;
+  color: #007bff;
+}
+
+.team-member p {
+  font-size: 14px;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 20px;
+  background-color: #333;
+  color: #fff;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .meet-the-team .team-members {
+    flex-direction: column;
+  }
+
+  .team-member {
+    max-width: 100%;
+  }
+}

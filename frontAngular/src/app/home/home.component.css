@@ -1,0 +1,62 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f4f4f6;
+  color: #333;
+  padding: 20px;
+}
+
+/* Home Title Styling */
+.home__title p {
+  font-size: 24px;
+  text-align: center;
+  margin: 20px 0;
+  color: #333;
+}
+
+/* Navigation styling */
+ul {
+  padding: 0;
+  margin: 20px 0;
+  display: flex;
+  justify-content: space-around;
+  list-style: none;
+}
+
+ul li {
+  border: 1px solid #ccc; /* Added border for each list item */
+  padding: 10px;
+  border-radius: 5px; /* Optional: adds rounded corners to the border */
+}
+
+ul li a {
+  text-decoration: none;
+  color: #007bff;
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 5px; /* Matches the border radius of the list item for visual consistency */
+  transition: background-color 0.3s, color 0.3s;
+}
+
+ul li a:hover, ul li a:focus {
+  background-color: #0061a8;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+/* Responsive navigation */
+@media (max-width: 768px) {
+  ul {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  ul li {
+    margin-bottom: 10px; /* Adds spacing between items in a column layout */
+  }
+}

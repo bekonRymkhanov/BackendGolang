@@ -354,6 +354,7 @@ func handleUserPreferencesRequest(config Config) http.HandlerFunc {
 
 // handleUsersRequest handles requests for user information
 func handleUsersRequest() http.HandlerFunc {
+	fmt.Println("Handling user requests")
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -402,6 +403,7 @@ func handleUsersRequest() http.HandlerFunc {
 }
 
 func handleGlobalPreferencesRequest() http.HandlerFunc {
+	fmt.Println("Handling global preferences requests")
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -514,6 +516,7 @@ func main() {
 	// Set up routes
 	http.HandleFunc("/recommendations", handleRecommendationRequest(config))
 	http.HandleFunc("/global/preferences", handleGlobalPreferencesRequest())
+
 	http.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
 		// Split the path to determine if this is a preferences request
 		parts := strings.Split(r.URL.Path, "/")
