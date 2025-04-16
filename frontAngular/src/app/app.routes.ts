@@ -2,7 +2,6 @@ import { Router, Routes } from '@angular/router';
 import {HomeComponent} from "./home/home.component";
 import {AboutComponent} from "./about/about.component";
 import {NotFoundComponent} from "./not-found/not-found.component";
-import {UserComponent} from "./user/user.component";
 import { AuthService } from './auth.service';
 import { inject } from '@angular/core';
 import { AuthGuard } from './auth.guard';
@@ -12,6 +11,8 @@ import { BooksComponent } from './books/books.component';
 import { LoginComponent } from './login/login.component';
 import { RegisterComponent } from './register/register.component';
 import { ProfileComponent } from './profile/profile.component';
+import { FavoriteBooksComponent } from './favorite-books/favorite-books.component';
+import { RecomendationComponent } from './recomendation/recomendation.component';
 
 
 
@@ -36,6 +37,9 @@ export const routes: Routes = [
     { path: 'login', component: LoginComponent },
     { path: 'register', component: RegisterComponent },
     { path: 'profile', component: ProfileComponent },
+    { path: 'favoriteBooks', component: FavoriteBooksComponent },
+    { path: 'recomendation', component: RecomendationComponent },
+
 
     { path:"**",component:NotFoundComponent,title:"404 - not found" }
 ];

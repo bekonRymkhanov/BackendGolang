@@ -1,0 +1,92 @@
+<!-- import { Component } from '@angular/core';
+import { AuthenticationResponse, Book, FavoriteBook } from '../models';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { AuthService } from '../auth.service';
+import { OneXBetService } from '../one-xbet.service';
+import { NgIf, NgForOf } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+
+@Component({
+  selector: 'app-favorite-books',
+  standalone: true,
+  imports: [    NgIf,
+    FormsModule,
+    RouterLink,
+    NgForOf],
+  templateUrl: './favorite-books.component.html',
+  styleUrl: './favorite-books.component.css'
+})
+export interface FavoriteBook {
+  id: number;
+  user_id: number;
+  book_name: string;
+  created_at: string;
+}
+export class FavoriteBooksComponent {
+  book!: Book;
+  favoriteBooks: FavoriteBook[] = [];
+  loaded: boolean = false;
+  removingFromFavorites: boolean = false;
+
+
+  userSession: AuthenticationResponse | null = null;
+
+  constructor(
+    private httpService: OneXBetService,
+    private authService: AuthService,
+    private route: ActivatedRoute
+  ) {
+
+  }
+  
+  ngOnInit(): void {
+    this.loaded = false;
+    this.loadUserProfile();
+
+  }
+  loadUserProfile(): void {
+    const userData = sessionStorage.getItem('currentUser');
+    if (userData) {
+      try {
+        this.userSession = JSON.parse(userData);
+        // Load favorite books after user is authenticated
+        this.loadFavoriteBooks();
+      } catch (error) {
+        console.error('Error parsing user data from session storage:', error);
+      }
+    }
+  }
+  loadFavoriteBooks(): void {
+    if (!this.userSession?.user) {
+      return;
+    }
+    
+    this.httpService.getFavoriteBooks().subscribe(
+      response => {
+        this.favoriteBooks = response.favorite_books;
+      },
+      error => {
+        console.error('Error loading favorite books:', error);
+      }
+    );
+  }
+
+
+} -->
+
+
+
+<div *ngIf="!loaded">Loading books...</div>
+<div *ngIf="favoriteBooks.length > 0">
+    <div *ngFor="let book of favoriteBooks">    
+        <div class="book-card">
+            <h2>{{ book.book_name }}</h2>
+            <p><strong>Added on:</strong> {{ book.created_at }}</p>
+            <button (click)="removeFromFavorites(book.id)">Remove from Favorites</button>
+        </div>
+    </div>
+</div>
+
+
+<div *ngIf="favoriteBooks.length === 0">
+    <p>No favorite books found.</p>

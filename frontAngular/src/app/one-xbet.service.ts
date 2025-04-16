@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import {HttpClient, HttpHeaders} from "@angular/common/http";
 import {User,Book,Genre,SubGenre,Comment,Rating,Metadata,BookFilters, requestBookDetail, FavoriteBook, AuthenticationResponse} from "./models";
+import { Observable } from 'rxjs/internal/Observable';
 
 @Injectable({
   providedIn: 'root'
@@ -146,6 +147,16 @@ export class OneXBetService {
   deleteFavoriteBook(id: number) {
     const headers = this.getAuthHeaders();
     return this.client.delete<{ message: string }>(`${this.BACKEND_URL}/favorite-books/${id}`,{headers});
+  }
+
+
+  getBookRecommendations(userId: number, bookTitles: string[]): Observable<any> {
+    const headers = this.getAuthHeaders();
+    // Make sure this URL points to your Go backend
+    return this.client.post<any>('http://localhost:8080/recommendations', {
+      user_id: userId,
+      user_book_titles: bookTitles
+    }, { headers });
   }
 
 

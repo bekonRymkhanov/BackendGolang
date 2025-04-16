@@ -1,108 +1,114 @@
-body, h1, h2, h3, p, ul, li, figure {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-body {
-  font-family: Arial, sans-serif;
-  line-height: 1.6;
-  color: #333;
-  background-color: #fff;
-}
-
+/* About Component Styles */
 main {
-  max-width: 1200px;
-  margin: 20px auto;
-  padding: 20px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
 }
 
-h1, h2, h3 {
-  color: #0056b3;
+section {
+  margin-bottom: 3rem;
 }
 
 h1 {
-  margin-bottom: 20px;
-  font-size: 28px;
+  color: #2c7a2a;
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 1.5rem;
 }
 
 h2 {
-  margin-top: 20px;
-  margin-bottom: 15px;
-  font-size: 24px;
+  color: #2c7a2a;
+  font-size: 1.75rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid #e6f2e6;
+  padding-bottom: 0.5rem;
 }
 
 p {
-  margin-bottom: 10px;
+  line-height: 1.6;
+  color: #444;
+  margin-bottom: 1rem;
 }
 
-/* Section styling */
-section {
-  margin-bottom: 20px;
+.about-us, .our-history, .our-values {
+  background-color: white;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Values list */
 .our-values ul {
-  padding-left: 20px;
+  padding-left: 1.5rem;
+  margin-top: 1rem;
 }
 
 .our-values li {
-  margin-bottom: 10px;
+  margin-bottom: 1rem;
 }
 
-/* Team members */
-.meet-the-team .team-members {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
+.our-values strong {
+  color: #2c7a2a;
+}
+
+.team-members {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
 }
 
 .team-member {
-  flex: 1 1 300px;
-  margin: 10px;
-  background-color: #ffffff;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  padding: 20px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.team-member:hover {
+  transform: translateY(-5px);
 }
 
 .team-member img {
   width: 100%;
-  height: auto;
-  max-width: 200px;
-  border-radius: 50%;
-  margin: 0 auto;
-  display: block;
+  height: 200px;
+  object-fit: cover;
+  border-bottom: 3px solid #2c7a2a;
 }
 
 .team-member h3 {
-  margin: 15px 0;
-  color: #007bff;
+  color: #2c7a2a;
+  padding: 1rem 1rem 0.5rem;
+  margin: 0;
+  font-size: 1.25rem;
 }
 
 .team-member p {
-  font-size: 14px;
+  padding: 0 1rem 1.5rem;
+  margin: 0;
+  font-size: 0.9rem;
 }
 
-/* Footer */
 footer {
   text-align: center;
-  padding: 20px;
-  background-color: #333;
-  color: #fff;
+  padding: 2rem;
+  background-color: #f9f9f9;
+  color: #666;
+  margin-top: 3rem;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
-  .meet-the-team .team-members {
-    flex-direction: column;
+  .team-members {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   }
+}
 
-  .team-member {
-    max-width: 100%;
+@media (max-width: 480px) {
+  main {
+    padding: 1rem;
+  }
+  
+  .about-us, .our-history, .our-values {
+    padding: 1.5rem;
   }
 }

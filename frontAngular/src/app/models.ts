@@ -71,6 +71,7 @@ export interface FavoriteBook {
   user_id: number;
   book_name: string;
   created_at: string;
+  is_admin: boolean;
 }
 
 export interface User {

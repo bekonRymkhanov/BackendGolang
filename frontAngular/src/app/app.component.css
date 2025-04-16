@@ -1,83 +1,85 @@
-.book-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  justify-content: center;
-}
-
-.book-card {
-  width: 200px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  text-align: center;
-}
-
-.book-card img {
-  width: 100%;
-  border-radius: 4px;
-}
-
-.book-title {
-  font-size: 1em;
-  margin: 8px 0;
-}
-
-.book-author {
-  font-size: 0.9em;
-  color: #555;
-}
-
-.book-rating {
-  color: gold;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-
-
+/* Main Navigation Bar Styles */
 .navbar {
-  background-color: #f6efee;
-  padding: 10px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
+  background-color: #2c7a2a;
+  color: white;
+  padding: 0.75rem 2rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.navbar-logo, .navbar-section-right {
+.navbar-logo {
   display: flex;
   align-items: center;
+  text-decoration: none;
+  color: white;
 }
 
-.logo, .profile {
-  height: 60px;
+.logo {
+  height: 40px;
   width: auto;
   margin-right: 10px;
-  border-radius: 30px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  border-radius: 50%;
+}
+
+.profile {
+  height: 30px;
+  width: auto;
+  border-radius: 50%;
+  margin-right: 5px;
 }
 
 .logo-text {
-  font-weight: 600;
-  font-size: 20px;
-  color: #a55747;
+  font-size: 1.5rem;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+.navbar-section-left, .navbar-section-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
 }
 
 .navbar-item {
-  color: #a55747;
+  color: white;
   text-decoration: none;
-  font-size: 16px;
-  padding: 8px 16px;
+  font-size: 1rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
 }
 
 .navbar-item:hover {
-  background-color: #bcc5f1;
-  color: #ffffff;
-  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+button.navbar-item {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+}
+
+button.navbar-item:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* General Layout Styling */
+router-outlet {
+  margin-top: 20px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    padding: 0.5rem;
+  }
+  
+  .navbar-section-right {
+    margin-top: 10px;
+    width: 100%;
+    justify-content: center;
+  }
 }
