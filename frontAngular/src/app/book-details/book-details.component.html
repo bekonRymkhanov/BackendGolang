@@ -6,6 +6,9 @@
     <p><strong>Price:</strong> {{ book.price }}</p>
     <p><strong>Rating:</strong> {{ book.rating }} / 5 ({{ book.people_rated }} ratings)</p>
     <a href="{{book.url}}">Buy: Amazon</a>
+    <div *ngIf="userSession?.user?.is_admin">
+        <button (click)="deleteBook()" >Delete Book</button>
+    </div>
     <div class="favorite-section">
         <button 
           *ngIf="userSession?.user"
@@ -15,6 +18,7 @@
           [class.favorited]="isFavorite">
           <span *ngIf="!isFavorite">❤️ Add to Favorites</span>
           <span *ngIf="isFavorite">❤️ Remove from Favorites</span>
+
         </button>
         <div *ngIf="addingToFavorites || removingFromFavorites" class="loading-spinner">
           Updating...

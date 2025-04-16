@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { AuthenticationResponse, Book, Comment, FavoriteBook } from '../models';
 import { AuthService } from '../auth.service';
 import { OneXBetService } from '../one-xbet.service';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgIf, NgForOf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -38,7 +38,8 @@ export class BookDetailsComponent implements OnInit {
   constructor(
     private httpService: OneXBetService,
     private authService: AuthService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private router: Router
   ) {
     this.newComment = {
       "book_id": 0,
@@ -199,6 +200,16 @@ export class BookDetailsComponent implements OnInit {
             "user_id": this.userSession?.user?.id ?? 0,
           };
         }
+      });
+    }
+  }
+  deleteBook() {
+    if (this.book) {
+      this.httpService.deleteBook(this.book.id).subscribe(() => {
+        alert('Book deleted successfully');
+        this.router.navigate(['/books']);
+      }, error => {
+        console.error('Error deleting book:', error);
       });
     }
   }

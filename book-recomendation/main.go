@@ -92,6 +92,23 @@ func setupDB() (*sql.DB, error) {
 	log.Println("Successfully connected to the database")
 	return db, nil
 }
+func setupCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Set CORS headers
+		w.Header().Set("Access-Control-Allow-Origin", "*") // Allow any origin - you can restrict this to specific origins
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		// Handle preflight requests
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		// Call the next handler
+		next.ServeHTTP(w, r)
+	})
+}
 
 // getUserDetailsFromDB gets user information from the database
 func getUserDetailsFromDB(userID int) (*User, error) {
@@ -293,6 +310,12 @@ func convertToPreferencesMap(prefs []UserPreference) UserPreferencesMap {
 // handleRecommendationRequest handles incoming recommendation requests
 func handleRecommendationRequest(config Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Handle OPTIONS preflight request
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
@@ -513,11 +536,14 @@ func main() {
 	}
 	defer db.Close()
 
-	// Set up routes
-	http.HandleFunc("/recommendations", handleRecommendationRequest(config))
-	http.HandleFunc("/global/preferences", handleGlobalPreferencesRequest())
+	// Create a new router
+	mux := http.NewServeMux()
 
-	http.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
+	// Set up routes
+	mux.HandleFunc("/recommendations", handleRecommendationRequest(config))
+	mux.HandleFunc("/global/preferences", handleGlobalPreferencesRequest())
+
+	mux.HandleFunc("/user/", func(w http.ResponseWriter, r *http.Request) {
 		// Split the path to determine if this is a preferences request
 		parts := strings.Split(r.URL.Path, "/")
 
@@ -536,14 +562,18 @@ func main() {
 		// Otherwise handle as a regular user request
 		http.NotFound(w, r)
 	})
-	http.HandleFunc("/users/", handleUsersRequest())
+	mux.HandleFunc("/users/", handleUsersRequest())
+
 	// Serve static files for frontend
 	fs := http.FileServer(http.Dir("./static"))
-	http.Handle("/", fs)
+	mux.Handle("/", fs)
+
+	// Apply CORS middleware to all routes
+	handler := setupCORS(mux)
 
 	// Start server
 	log.Printf("Starting server on port %s", config.Port)
-	log.Fatal(http.ListenAndServe(":"+config.Port, nil))
+	log.Fatal(http.ListenAndServe(":"+config.Port, handler))
 }
 
 // getEnv gets an environment variable or returns a default value

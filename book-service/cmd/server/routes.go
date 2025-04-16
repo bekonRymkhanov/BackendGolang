@@ -12,11 +12,11 @@ func (app *application) routes() http.Handler {
 	router.NotFound = http.HandlerFunc(app.notFoundResponse)
 	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
 
-	router.HandlerFunc(http.MethodGet, "/Books", app.listBooksHandler)                                                ///
-	router.HandlerFunc(http.MethodPost, "/Books", app.requirePermission("movies:write", app.createBookHandler))       ////
-	router.HandlerFunc(http.MethodGet, "/Books/:id", app.showBookHandler)                                             ////
-	router.HandlerFunc(http.MethodPatch, "/Books/:id", app.requirePermission("movies:write", app.updateBookHandler))  ///
-	router.HandlerFunc(http.MethodDelete, "/Books/:id", app.requirePermission("movies:write", app.deleteBookHandler)) ////
+	router.HandlerFunc(http.MethodGet, "/Books", app.listBooksHandler)                                               ///
+	router.HandlerFunc(http.MethodPost, "/Books", app.requirePermission("movies:write", app.createBookHandler))      ////
+	router.HandlerFunc(http.MethodGet, "/Books/:id", app.showBookHandler)                                            ////
+	router.HandlerFunc(http.MethodPatch, "/Books/:id", app.requirePermission("movies:write", app.updateBookHandler)) ///
+	router.HandlerFunc(http.MethodDelete, "/Books/:id", app.deleteBookHandler)                                       ////
 
 	router.HandlerFunc(http.MethodGet, "/Genres", app.listGenreHandler)          ///
 	router.HandlerFunc(http.MethodPost, "/Genres", app.createGenreHandler)       ///

@@ -1,0 +1,50 @@
+<div class="container">
+    <h1>Book Recommendation System</h1>
+    
+    <div class="container" *ngIf="errorMessage">
+      <div id="error">{{ errorMessage }}</div>
+    </div>
+    
+    <div class="container" *ngIf="userSession?.user">
+      <h2>Your Favorite Books</h2>
+      
+      <div *ngIf="isLoading" class="loading">Loading your favorite books...</div>
+      
+      <div *ngIf="!isLoading && favoriteBooks.length === 0">
+        <p>You haven't added any books to your favorites yet.</p>
+        <p>Add some books to your favorites to get personalized recommendations!</p>
+      </div>
+      
+      <ul *ngIf="!isLoading && favoriteBooks.length > 0" id="favorites">
+        <li *ngFor="let book of favoriteBooks">
+          {{ book.book_name }}
+        </li>
+      </ul>
+      
+      <button 
+        [disabled]="isLoading || favoriteBooks.length === 0" 
+        (click)="getRecommendations()">
+        Get Recommendations
+      </button>
+    </div>
+    
+    <div class="container" id="resultsContainer" *ngIf="showResults">
+      <h2>Recommendations</h2>
+      <div *ngIf="isLoading" class="loading">Getting your recommendations...</div>
+      
+      <ul id="recommendations" *ngIf="!isLoading && recommendedBooks.length > 0">
+        <li *ngFor="let title of recommendedBooks">
+          {{ title }}
+        </li>
+      </ul>
+      
+      <p *ngIf="!isLoading && recommendedBooks.length === 0">
+        No recommendations found. Try adding more books to your favorites.
+      </p>
+    </div>
+    
+    <div class="container" *ngIf="!userSession?.user">
+      <h2>Get Book Recommendations</h2>
+      <p>Please log in to get personalized book recommendations based on your favorites.</p>
+    </div>
+  </div>
