@@ -120,9 +120,7 @@ func (app *application) deleteFavoriteBookHandler(w http.ResponseWriter, r *http
 	}
 }
 
-// Helper method to check for duplicate errors (you may need to adjust this based on your error handling)
 func (app *application) isDuplicateErr(err error) bool {
-	// This is a simplified check. In real world, check for specific PostgreSQL error code
 	return err != nil && err.Error() != "" && contains(err.Error(), "duplicate") && contains(err.Error(), "unique")
 }
 
