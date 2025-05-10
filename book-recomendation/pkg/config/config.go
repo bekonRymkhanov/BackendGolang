@@ -20,7 +20,7 @@ type DBConfig struct {
 
 func LoadConfig() Config {
 	return Config{
-		FriendServiceURL: getEnv("FRIEND_SERVICE_URL", "http://localhost:8001"),
+		FriendServiceURL: getEnv("FRIEND_SERVICE_URL", "http://localhost/api/model"),
 		Port:             getEnv("PORT", "8080"),
 		DB: DBConfig{
 			Host:     getEnv("DB_HOST", "159.223.84.254"),
