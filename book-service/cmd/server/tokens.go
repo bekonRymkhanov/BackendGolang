@@ -50,7 +50,7 @@ func (app *application) createAuthenticationTokenHandler(w http.ResponseWriter, 
 		return
 	}
 
-	token, err := app.models.Tokens.New(user.ID, 5*time.Minute, data.ScopeAuthentication)
+	token, err := app.models.Tokens.New(user.ID, 10*time.Minute, data.ScopeAuthentication)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

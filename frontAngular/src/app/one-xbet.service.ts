@@ -7,7 +7,7 @@ import { Observable } from 'rxjs/internal/Observable';
   providedIn: 'root'
 })
 export class OneXBetService {
-  BACKEND_URL="http://localhost:4000"
+  BACKEND_URL="http://localhost/api/books"
 
   constructor(private client:HttpClient) { }
 
@@ -25,28 +25,25 @@ export class OneXBetService {
     return new HttpHeaders();
   }
   getBooks(filters:BookFilters){
-    return this.client.get<{ books: Book[], metadata: Metadata }>(`${this.BACKEND_URL}/Books/`, { params: { ...filters } })
+    return this.client.get<{ books: Book[], metadata: Metadata }>(`${this.BACKEND_URL}/Books`, { params: { ...filters } })
   }
   getBook(id:number){
-    return this.client.get<requestBookDetail>(`${this.BACKEND_URL}/Books/${id}/`)
+    return this.client.get<requestBookDetail>(`${this.BACKEND_URL}/Books/${id}`)
   }
   deleteBook(id:number){
-    return this.client.delete(`${this.BACKEND_URL}/Books/${id}/`)
+    return this.client.delete(`${this.BACKEND_URL}/Books/${id}`)
   }
   postBook(newBook:Book){
-    console.log(newBook.id)
-    return this.client.post<Book>(`${this.BACKEND_URL}/Books/`,newBook)
+    return this.client.post<Book>(`${this.BACKEND_URL}/Books`,newBook)
   }
   putBook(newBook:Book){
-    console.log(newBook.id)
-    return this.client.put<Book>(`${this.BACKEND_URL}/Books/${newBook.id}/`,newBook)
+    return this.client.put<Book>(`${this.BACKEND_URL}/Books/${newBook.id}`,newBook)
   }
   getBookComments(id:number){
-    console.log(`${this.BACKEND_URL}/booksComments/${id}/`)
-    return this.client.get<{comments: Comment[], metadata: Metadata}>(`${this.BACKEND_URL}/booksComments/${id}/`)
+    return this.client.get<{comments: Comment[], metadata: Metadata}>(`${this.BACKEND_URL}/booksComments/${id}`)
   }
   getBookRatings(id:number){
-    return this.client.get<Rating[]>(`${this.BACKEND_URL}/booksRatings/${id}/`)
+    return this.client.get<Rating[]>(`${this.BACKEND_URL}/booksRatings/${id}`)
   }
 
 
@@ -95,41 +92,41 @@ export class OneXBetService {
 
 
   getComment(id:number){
-    return this.client.get<Comment>(`${this.BACKEND_URL}/Comments/${id}/`)
+    return this.client.get<Comment>(`${this.BACKEND_URL}/Comments/${id}`)
   }
   deleteComment(id:number){
-    return this.client.delete(`${this.BACKEND_URL}/Comments/${id}/`)
+    return this.client.delete(`${this.BACKEND_URL}/Comments/${id}`)
   }
   postComment(newComment:{
     book_id: number;
     user_id: number;
     content: string;
   }){
-    return this.client.post<Comment>(`${this.BACKEND_URL}/Comments/`,newComment)
+    return this.client.post<Comment>(`${this.BACKEND_URL}/Comments`,newComment)
   }
   putComment(newComment:Comment){
     console.log(newComment.id)
-    return this.client.put<Comment>(`${this.BACKEND_URL}/Comments/${newComment.id}/`,newComment)
+    return this.client.put<Comment>(`${this.BACKEND_URL}/Comments/${newComment.id}`,newComment)
   }
 
 
 
   getRating(id:number){
-    return this.client.get<Rating>(`${this.BACKEND_URL}/Rating/${id}/`)
+    return this.client.get<Rating>(`${this.BACKEND_URL}/Rating/${id}`)
   }
   deleteRating(id:number){
-    return this.client.delete(`${this.BACKEND_URL}/Rating/${id}/`)
+    return this.client.delete(`${this.BACKEND_URL}/Rating/${id}`)
   }
   postRating(newRating:Rating){
     console.log(newRating.id)
-    return this.client.post<Rating>(`${this.BACKEND_URL}/Rating/`,newRating)
+    return this.client.post<Rating>(`${this.BACKEND_URL}/Rating`,newRating)
   }
   putRating(newRating:Rating){
     console.log(newRating.id)
-    return this.client.put<Rating>(`${this.BACKEND_URL}/Rating/${newRating.id}/`,newRating)
+    return this.client.put<Rating>(`${this.BACKEND_URL}/Rating/${newRating.id}`,newRating)
   }
   getBookRatingByUser(bookID:number){
-    return this.client.get<Rating>(`${this.BACKEND_URL}/Rating/${bookID}/`)
+    return this.client.get<Rating>(`${this.BACKEND_URL}/Rating/${bookID}`)
   }
 
 
@@ -153,7 +150,7 @@ export class OneXBetService {
   getBookRecommendations(userId: number, bookTitles: string[]): Observable<any> {
     const headers = this.getAuthHeaders();
     // Make sure this URL points to your Go backend
-    return this.client.post<any>('http://localhost:8080/recommendations', {
+    return this.client.post<any>('http://localhost/api/model/recommendations', {
       user_id: userId,
       user_book_titles: bookTitles
     }, { headers });
