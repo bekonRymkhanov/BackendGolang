@@ -7,7 +7,7 @@ import { Observable } from 'rxjs/internal/Observable';
   providedIn: 'root'
 })
 export class OneXBetService {
-  BACKEND_URL="http://localhost/api/books"
+  BACKEND_URL="http://4.213.138.144:4000"
 
   constructor(private client:HttpClient) { }
 
