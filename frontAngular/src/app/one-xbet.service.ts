@@ -7,7 +7,7 @@ import { Observable } from 'rxjs/internal/Observable';
   providedIn: 'root'
 })
 export class OneXBetService {
-  BACKEND_URL="http://4.213.138.144:4000"
+  BACKEND_URL="http://4.213.138.144/api/books"
 
   constructor(private client:HttpClient) { }
 
@@ -150,7 +150,7 @@ export class OneXBetService {
   getBookRecommendations(userId: number, bookTitles: string[]): Observable<any> {
     const headers = this.getAuthHeaders();
     // Make sure this URL points to your Go backend
-    return this.client.post<any>('http://localhost/api/model/recommendations', {
+    return this.client.post<any>('http://4.213.138.144/api/model/recommendations', {
       user_id: userId,
       user_book_titles: bookTitles
     }, { headers });
