@@ -106,3 +106,8 @@ export interface requestBookDetail {
   book: Book
 }
 
+export interface ProfileUpdateData {
+  name?: string;
+  email?: string;
+  password?: string;
+}

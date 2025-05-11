@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { User, AuthResponse, ActivationResponse, AuthenticationResponse } from './models';
@@ -9,6 +9,7 @@ import { User, AuthResponse, ActivationResponse, AuthenticationResponse } from '
 })
 export class AuthService {
   private apiUrl = 'http://4.213.138.144/api/books';
+  //private apiUrl = 'http://localhost/api/books';
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
@@ -18,6 +19,19 @@ export class AuthService {
     if (userData) {
       this.currentUserSubject.next(JSON.parse(userData));
     }
+  }
+  private getAuthHeaders(): HttpHeaders {
+    const userData = sessionStorage.getItem('currentUser');
+    if (userData) {
+      const user: { 
+        token: string;
+        expiry: string;
+        user:User}= JSON.parse(userData);
+      return new HttpHeaders({
+        'Authorization': `Bearer ${user.token}`
+      });
+    }
+    return new HttpHeaders();
   }
 
   register(user: User): Observable<AuthResponse> {
@@ -58,6 +72,29 @@ export class AuthService {
     this.currentUserSubject.next(null);
   }
 
+  updateUserProfile(userData: {
+    name?: string;
+    email?: string;
+    password?: string;
+  }): Observable<AuthenticationResponse> {
+    const headers = this.getAuthHeaders();
+
+    return this.http.put<AuthenticationResponse>(`${this.apiUrl}/users/profile`,userData, { headers }).pipe(
+      tap(response => {
+        const currentUserData = sessionStorage.getItem('currentUser');
+        if (currentUserData) {
+          const currentUser = JSON.parse(currentUserData);
+          const updatedUserData = {
+            ...currentUser,
+            user: response.user
+          };
+          sessionStorage.setItem('currentUser', JSON.stringify(updatedUserData));
+          this.currentUserSubject.next(updatedUserData.user);
+        }
+      })
+    );
+  }
+
   get isLoggedIn(): boolean {
     return !!sessionStorage.getItem('currentUser');
   }
@@ -75,12 +112,4 @@ export class AuthService {
     return null;
   }
 
-  // Helper method to get auth headers for API calls that need authentication
-  getAuthHeaders() {
-    const token = this.authToken;
-    if (token) {
-      return { Authorization: `Bearer ${token}` };
-    }
-    return {};
-  }
 }

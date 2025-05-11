@@ -47,6 +47,7 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPost, "/users", app.registerUserHandler)
 	router.HandlerFunc(http.MethodPut, "/users/activated", app.activateUserHandler)
 	router.HandlerFunc(http.MethodPost, "/tokens/authentication", app.createAuthenticationTokenHandler)
+	router.HandlerFunc(http.MethodPut, "/users/profile", app.requireAuthenticatedUser(app.updateUserProfileHandler))
 
 	router.HandlerFunc(http.MethodGet, "/favorite-books", app.requireAuthenticatedUser(app.GetFavoriteBooks))
 	router.HandlerFunc(http.MethodPost, "/favorite-books", app.requireAuthenticatedUser(app.addFavoriteBookHandler))
